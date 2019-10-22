@@ -1,74 +1,79 @@
 package satsolver;
 
-import java.util.ArrayList;
+import java.io.IOException;
+import java.util.Comparator;
 
 public class SatSolver {
 
-    public SatSolver(String fileName){
-        Formula formula = new Formula();
-        formula.readFile(fileName);
+    public SatSolver(String fileName) throws IOException {
+        FormulaReader formulaReader = new FormulaReader();
         System.out.println("Solving...");
-        solve(formula);
-
+        Formula f = FormulaReader.readFromFile(fileName);
+        solver(f);
     }
 
-    public boolean dpSolver(Formula f) {
-        // recursive backtracking search using Davis-Putnam Algorithm
+    public static Assignation solve(Formula f, Assignation assignation) {
+        // recursive backtracking search using DPLL Algorithm
         // empty formula or solved
-        if (f.isFormulaEmpty()) return true;
+        if (f.isEmpty()) return assignation;
 
         // empty clause can't be satisfied
-        else if (f.hasEmptyClause()) return false;
+        if (f.containsEmptyClause()) return null;
 
         // perform unit propagation
-        f.unitPropagation();
+        for (Integer unitLiteral : f.getUnitLiterals()) {
+            f = unitPropagate(f, unitLiteral);
+            assignation = assignation.addLiteralValue(unitLiteral);
+        }
 
         // perform pure literal elimination
-        ArrayList<Integer> pureVariables = f.pureLiteralElimination();
-//        ArrayList<Integer> pureVariables = new ArrayList<>();
+        for (Integer pureLiteral : f.getPureLiterals()) {
+            f = eliminatePureLiteral(f, pureLiteral);
+            assignation = assignation.addLiteralValue(pureLiteral);
+        }
 
-        if (f.isFormulaEmpty()) return true;
+        // empty formula or solved
+        if (f.isEmpty()) return assignation;
 
         // empty clause can't be satisfied
-        else if (f.hasEmptyClause()) return false;
+        if (f.containsEmptyClause()) return null;
 
-        // attempt to satisfy
-        else {
-            // get first available variable
-            int varAvailable = f.firstAvailableVariable();
+        // pick an unchosen variable to branch on
+        int literal = chooseLiteral(f);
 
-            // try to assign it true
-            f.assign(varAvailable, 1);
-
-            // check if satisfiable
-            if (dpSolver(f)) return true;
-
-            // recursively solve
-            else{
-                // unset the last assigned variables
-                f.unsetVariable(varAvailable);
-                for (int i : pureVariables)  f.unsetVariable(i);
-
-                // try assigning it false
-                f.assign(varAvailable, -1);
-
-                // check if satisfiable
-                if(dpSolver(f)) return true;
-
-                // unset the variable
-                else {
-                    // if un setting a variable, need to re add all the clauses removed due to becoming pure-literals
-                    f.unsetVariable(varAvailable);
-                    for (int i : pureVariables) f.unsetVariable(i);
-                }
-                return false;
-            }
+        // attempt to satisfy by branching positive
+        Formula cnfWithLiteralTrue = new Formula(f).addSingleLiteralClause(literal);
+        Assignation result = solve(cnfWithLiteralTrue, assignation.addLiteralValue(literal));
+        if (result != null) {
+            return result;
         }
+
+        // attempt to satisfy by branching negative
+        Formula cnfWithLiteralFalse = new Formula(f).addSingleLiteralClause(-literal);
+        return solve(cnfWithLiteralFalse, assignation.addLiteralValue(-literal));
     }
 
-    public void solve(Formula f) {
-        if (dpSolver(f)) {System.out.println("The formula is satisfiable with the following variables:");
-            f.printAssignment();
+    // eliminate
+    private static Formula unitPropagate(Formula f, int literal) {
+        return eliminatePureLiteral(new Formula(f).removeLiteralInAllClauses(-literal), literal);
+    }
+
+    private static Formula eliminatePureLiteral(Formula f, int literal) {
+        return new Formula(f).removeAllClausesWithLiteral(literal);
+    }
+
+    private static Integer chooseLiteral(Formula f) {
+        return f.getClauses().stream()
+                .flatMap(disjunction -> disjunction.values.stream())
+                .map(Math::abs)
+                .min(Comparator.naturalOrder())
+                .get();
+    }
+
+    public void solver(Formula f) {
+        Assignation result = solve(f, new Assignation());
+        if (result != null) {System.out.println("The formula is satisfiable with the following variables:");
+            System.out.println(result);
         }
         else {
             System.out.println("The formula is unsatisfiable!");

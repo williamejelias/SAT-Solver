@@ -1,61 +1,45 @@
 package satsolver;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.LinkedList;
-import java.util.Scanner;
-import java.util.regex.Pattern;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
 
 public class FormulaReader {
 
-    private int[][] formula;
-    private int numVars, numClauses;
+    public static Formula readFromFile(String filename) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(filename));
 
-    public void read(String filename) {
-        try {
-            Scanner fileScanner = new Scanner(new File(filename));
-
-            // look for "p cnf" ignore c lines as these are comments
-            Pattern pattern = Pattern.compile("p cnf");
-
-            // loop until found "p cnf"
-            while (fileScanner.findInLine(pattern) == null) {
-                fileScanner.nextLine();
-            }
-
-            numVars = fileScanner.nextInt();
-            numClauses = fileScanner.nextInt();
-            formula = new int[numClauses][];
-            LinkedList<Integer> currentLine = new LinkedList<>();
-            for (int currentRow = 0, currentNum; fileScanner.hasNextInt();) {
-                currentNum = fileScanner.nextInt();
-
-                // 0 marks end of clause
-                if (currentNum == 0) {
-                    formula[currentRow] = currentLine.stream().mapToInt(i->i).toArray();
-                    currentRow ++;
-                    currentLine.clear();
-                    continue;
-                }
-                currentLine.add(currentNum);
-            }
-            fileScanner.close();
-
-        } catch (FileNotFoundException e) {
-            System.out.println("ERROR: Unable to read " + filename + ".");
-            System.exit(0);
+        List<String> lines = new ArrayList<>();
+        String line;
+        while ((line = br.readLine()) != null) {
+            lines.add(line);
         }
+
+        return deserialize(lines);
     }
 
-    public int[][] getFormula() {
-        return formula;
-    }
+    private static Formula deserialize(List<String> lines) {
+        List<Clause> clauses = new ArrayList<>();
+        for (String line : lines) {
+            if (line.startsWith("c") || line.startsWith("p")) {
+                continue;
+            }
 
-    public int getNumVars() {
-        return numVars;
-    }
-
-    public int getNumClauses() {
-        return numClauses;
+            Clause clause = new Clause();
+            StringTokenizer st = new StringTokenizer(line);
+            while (st.hasMoreTokens()) {
+                int literal = Integer.parseInt(st.nextToken());
+                if (literal != 0) {
+                    clause.addLiteral(literal);
+                } else {
+                    clauses.add(clause);
+                    break;
+                }
+            }
+        }
+        return new Formula(clauses);
     }
 }
