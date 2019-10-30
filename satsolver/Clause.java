@@ -14,9 +14,13 @@ public class Clause {
         this.isEmpty = other.isEmpty;
     }
 
-    public Clause(Integer singleLiteral) {
+    public Clause(boolean isEmpty){
         this.values = new ArrayList<>();
-        this.values.add(singleLiteral);
+        this.isEmpty = isEmpty;
+    }
+
+    public Clause(List<Integer> values){
+        this.values = values;
     }
 
     public Clause() {
@@ -51,8 +55,7 @@ public class Clause {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Clause other = (Clause) o;
-        return isEmpty == other.isEmpty &&
-                Objects.equals(values, other.values);
+        return isEmpty == other.isEmpty && Objects.equals(values, other.values);
     }
 
     @Override

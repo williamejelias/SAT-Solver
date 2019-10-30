@@ -22,8 +22,15 @@ public class SatSolver {
 
         // perform unit propagation
         for (Integer unitLiteral : f.getUnitLiterals()) {
-            f = unitPropagate(f, unitLiteral);
-            assignation = assignation.addLiteralValue(unitLiteral);
+            if (f.getUnitLiterals().size() == f.getUnitLiterals().stream().map(Math::abs).distinct().count()) {
+                // no duplicates
+                f = unitPropagate(f, unitLiteral);
+                assignation = assignation.addLiteralValue(unitLiteral);
+            }
+            // one literal exists as both + and - so add an empty clause to ensure the assignment fails
+            else {
+                f.clauses.put(f.numClauses + 1, new Clause(true));
+            }
         }
 
         // perform pure literal elimination
@@ -53,6 +60,44 @@ public class SatSolver {
         return solve(cnfWithLiteralFalse, assignation.addLiteralValue(-literal));
     }
 
+    public static Assignation CDCLSolve(Formula f, Assignation assignation) {
+        while (true) {
+            // perform unit propagation
+            for (Integer unitLiteral : f.getUnitLiterals()) {
+                f = unitPropagate(f, unitLiteral);
+                assignation = assignation.addLiteralValue(unitLiteral);
+            }
+            // check if satisfied
+            if (f.isEmpty()) return assignation;
+
+            boolean conflict = true;
+            if (conflict) {
+                // no truth assignment
+                if (true) {
+                    // exit (unsat)
+                    return null;
+                }
+
+                // partial truth assignment
+                else {
+                    // C =  Conflict_clause(f, assignation);
+                    // set f = f U {C}
+                    //backtrack on truth assignment
+
+                    return null;
+                }
+
+            }
+
+            // choose and assign a variable
+            else {
+                // choose a variable and set it to either 1 or 0
+                // need to track whether a variable has been assigned to either
+                System.out.println();
+            }
+        }
+    }
+
     // eliminate
     private static Formula unitPropagate(Formula f, int literal) {
         return eliminatePureLiteral(new Formula(f).removeLiteralInAllClauses(-literal), literal);
@@ -64,7 +109,7 @@ public class SatSolver {
 
     private static Integer chooseLiteral(Formula f) {
         return f.getClauses().stream()
-                .flatMap(disjunction -> disjunction.values.stream())
+                .flatMap(clause -> clause.values.stream())
                 .map(Math::abs)
                 .min(Comparator.naturalOrder())
                 .get();
