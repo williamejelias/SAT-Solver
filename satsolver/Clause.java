@@ -23,24 +23,12 @@ public class Clause {
         this.values = values;
     }
 
-    public Clause() {
-        values = new ArrayList<>();
-    }
-
     public boolean hasUnitSize() {
         return values.size() == 1;
     }
 
     public Integer getFirst() {
         return values.get(0);
-    }
-
-    public boolean contains(int literal) {
-        return values.contains(literal);
-    }
-
-    public void addLiteral(Integer literal) {
-        values.add(literal);
     }
 
     public void remove(Integer literal) {

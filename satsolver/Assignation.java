@@ -36,7 +36,7 @@ public class Assignation {
     public String toString() {
         // order the result
         ArrayList<Integer> values = new ArrayList<>(assignation);
-        Collections.sort(values, Comparator.comparingInt(Math::abs));
+        values.sort(Comparator.comparingInt(Math::abs));
         return values.toString();
     }
 }

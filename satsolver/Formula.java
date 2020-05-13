@@ -14,8 +14,6 @@ public class Formula {
         this.numClauses = numClauses;
         this.clauses = clauses;
         Formula.variableMap = variableMap;
-//        System.out.println("Clauses: " + clauses);
-//        System.out.println(Formula.variableMap);
     }
 
     // formula from existing formula
@@ -23,36 +21,11 @@ public class Formula {
         this.numClauses = toCopy.numClauses;
         this.clauses = toCopy.clauses.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-//        System.out.println(Formula.variableMap);
-//        System.out.println("\nClauses: " + clauses);
-
-
-
-//        this.variableMap = toCopy.variableMap.entrySet().stream()
-//                .collect(Collectors.toMap(Map.Entry::getKey, e -> new HashSet(e.getValue())));
-
-//        this.variableMap = toCopy.variableMap.entrySet().stream()
-//                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     public Formula addSingleLiteralClause(Integer literal) {
-//        numClauses ++;
-//        clauses.put(numClauses, new Clause(literal));
-//        variableMap.get(literal).add(numClauses);
-//        System.out.println("Removing all clauses containing " + literal);
         removeAllClausesWithLiteral(literal);
-//        System.out.println("Clauses: " + clauses);
-
-//        System.out.println("Removing" + -literal + " in all clauses");
         removeLiteralInAllClauses(-literal);
-//        System.out.println("Clauses: " + clauses);
-
-
-//        try {
-//            variableMap.get(literal).add(numClauses);
-//        } catch (NullPointerException e) {
-//            variableMap.put(literal, new HashSet<>(numClauses));
-//        }
         return this;
     }
 
@@ -63,10 +36,7 @@ public class Formula {
     public Formula removeAllClausesWithLiteral(int literal) {
         try {
             variableMap.get(literal).forEach(clauseID -> clauses.remove(clauseID));
-//            variableMap.remove(literal);
-        } catch (NullPointerException e) {
-            //variable already removed
-        }
+        } catch (NullPointerException ignored) {}
         return this;
     }
 
@@ -79,27 +49,10 @@ public class Formula {
                 try {
                     Clause d = new Clause(clauses.get(cID));
                     d.remove(literal);
-//                    System.out.println("New clause: " + d);
-
-//                    numClauses++;
                     clauses.put(cID, d);
-//                    for (int i : d.values) {
-//                        variableMap.get(i).add(numClauses);
-//                    }
-                } catch (NullPointerException e) {
-                    // pass as the clause has been removed
-                }
+                } catch (NullPointerException ignored) {}
             }
-
-            try {
-//                variableMap.get(literal).forEach(clauseID -> clauses.remove(clauseID));
-//                variableMap.remove(literal);
-            } catch (NullPointerException e) {
-                //variable already removed
-            }
-        } catch (NullPointerException e){
-            // do nothing
-        }
+        } catch (NullPointerException ignored) {}
         return this;
     }
 

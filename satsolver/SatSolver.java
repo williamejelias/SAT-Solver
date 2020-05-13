@@ -60,44 +60,6 @@ public class SatSolver {
         return solve(cnfWithLiteralFalse, assignation.addLiteralValue(-literal));
     }
 
-    public static Assignation CDCLSolve(Formula f, Assignation assignation) {
-        while (true) {
-            // perform unit propagation
-            for (Integer unitLiteral : f.getUnitLiterals()) {
-                f = unitPropagate(f, unitLiteral);
-                assignation = assignation.addLiteralValue(unitLiteral);
-            }
-            // check if satisfied
-            if (f.isEmpty()) return assignation;
-
-            boolean conflict = true;
-            if (conflict) {
-                // no truth assignment
-                if (true) {
-                    // exit (unsat)
-                    return null;
-                }
-
-                // partial truth assignment
-                else {
-                    // C =  Conflict_clause(f, assignation);
-                    // set f = f U {C}
-                    //backtrack on truth assignment
-
-                    return null;
-                }
-
-            }
-
-            // choose and assign a variable
-            else {
-                // choose a variable and set it to either 1 or 0
-                // need to track whether a variable has been assigned to either
-                System.out.println();
-            }
-        }
-    }
-
     // eliminate
     private static Formula unitPropagate(Formula f, int literal) {
         return eliminatePureLiteral(new Formula(f).removeLiteralInAllClauses(-literal), literal);
